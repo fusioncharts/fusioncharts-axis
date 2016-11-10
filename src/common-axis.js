@@ -57,7 +57,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                         limits = getAxisLimits(storeMax,storeMin);
                         labels = [limits.Max,limits.Min];
                     };
-                    //console.log(getAxisLimits);
+
                 if(isMS && axisBool){
                     data = json.categories[0];
                     labelArr = data.category;
