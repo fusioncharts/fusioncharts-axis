@@ -9,7 +9,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
             math = Math,
             mathMax = math.max,
             mathMin = math.min,
-            findLabels = function (json,axisType){
+            findLabels = function (json,axisType,numDivLines){
                 var isMS = (json && json.categories) ? 1 : 0 ,
                     labels = [],
                     i = 0,
@@ -34,6 +34,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                             elementLast,
                             cnt,
                             labelArr,
+                            divGap,
                             limits = {},
                             getValue = function (lArr){
                                 len = lArr.length;
@@ -54,8 +55,16 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                                 }
                             };
                         bool ?  msGetValue(data) : getValue(data);
-                        limits = getAxisLimits(storeMax,storeMin);
-                        labels = [limits.Max,limits.Min];
+                        limits = getAxisLimits(storeMax,storeMin,null,null,true,true,numDivLines,true);
+                        divGap = limits.divGap;
+                        element = limits.Max;
+                        while(element >= 0){
+                            labels.push(element);
+                            element -= divGap;
+                        }
+                        labels.sort(function(a,b){
+                            return a-b;
+                        });
                     };
 
                 if(isMS && axisBool){
@@ -75,18 +84,10 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                 return labels;
             },
-            setAxisRange = function (axistype,labels){
-                var max,
-                    min;
-
-                if(axistype === 'x'){
-                    max = labels.length - 1;
+            setAxisRange = function (labels){
+                var max = labels.length - 1,
                     min = 0;
-                }else if(axistype === 'y'){
-                    min = labels[labels.length - 1];
-                    max = labels[0];
-                }
-
+                
                 return {
                     max : max,
                     min : min
@@ -122,6 +123,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     marginRight,
                     marginTop,
                     marginBottom,
+                    numDivLines,
                     left,
                     right,
                     top,
@@ -140,7 +142,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 marginRight = num(config.canvasrightmargin) || 0;
                 marginTop = num(config.canvastopmargin) || 0;
                 marginBottom = num(config.canvasbottommargin) || 0;
-                
+                numDivLines = num(config.numdivlines) || 4;
+
                 left = pluckNumber(config.canvasleftpadding , config.canvaspadding * 0.5, 0);
                 right = pluckNumber(config.canvasrightpadding , config.canvaspadding * 0.5, 0);
                 top = pluckNumber(config.canvastoppadding , config.canvaspadding * 0.5, 0);
@@ -151,12 +154,11 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axisConfig.len = chartwidth - (marginLeft + marginRight + left + right);
                 axisConfig.height = chartHeight - (marginTop + marginBottom + top + bottom);
                 axisConfig.axistype = chartInstance && chartInstance.args.axisType || 0;
+                axisConfig.divline = numDivLines;
 
                 if(axisConfig.axistype){
-                    console.log('in')
-                    axisConfig.labels = findLabels(jsonData,axisConfig.axistype);
+                    axisConfig.labels = findLabels(jsonData,axisConfig.axistype,numDivLines);
                     extension._drawaxis(axisConfig);
-                    console.log(axisConfig);
                 }
             },
 
@@ -172,7 +174,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     left = axisConfig.left,
                     axisLen = axisConfig.len,
                     axistype = axisConfig.axistype,
-                    range = setAxisRange(axistype,labels);
+                    range = setAxisRange(labels);
                             
                     axis.getScaleObj().setConfig('graphics', {
                        paper: paper
@@ -180,36 +182,35 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     axis.setRange(range.max,range.min);
                     axis.setAxisPosition(left,top);
                     
-
                     if(axisConfig.axistype == 'x'){
                         axis.setAxisLength(axisLen);
-                        axis.getScaleObj().getIntervalObj().manageIntervals = function () {
-                            var intervals = this.getConfig('intervals'),
-                                scale = this.getConfig('scale'),
-                                majorIntervalObj = intervals.major,
-                                intervalMin,
-                                intervalMax,
-                                intervalStep,
-                                range,
-                                len,
-                                i;
-
-                            majorIntervalObj.intervalPoints.length = 0;
-                            majorIntervalObj.formatter = function(val) {
-                                return labels[val];
-                            }
-
-                            for (i = 0, len = labels.length; i < len; i += 1) {
-                                majorIntervalObj.intervalPoints.push(i);
-                            }
-
-                            return this;
-                        };
+                        
                     }else{
                         axis.setAxisLength(axisConfig.height);
                         axis.getScaleObj().setConfig("vertical", true);
                     }
+                    axis.getScaleObj().getIntervalObj().manageIntervals = function () {
+                        var intervals = this.getConfig('intervals'),
+                            scale = this.getConfig('scale'),
+                            majorIntervalObj = intervals.major,
+                            intervalMin,
+                            intervalMax,
+                            intervalStep,
+                            range,
+                            len,
+                            i;
 
+                        majorIntervalObj.intervalPoints.length = 0;
+                        majorIntervalObj.formatter = function(val) {
+                            return labels[val];
+                        }
+
+                        for (i = 0, len = labels.length; i < len; i += 1) {
+                            majorIntervalObj.intervalPoints.push(i);
+                        }
+
+                        return this;
+                    };
                     axis.draw();
             }
         }]);
