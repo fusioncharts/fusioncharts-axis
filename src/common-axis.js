@@ -5,94 +5,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
             lib = global.hcLib,
             chartAPI = lib.chartAPI,
             pluckNumber = lib.pluckNumber,
-            getAxisLimits = lib.getAxisLimits,
-            math = Math,
-            mathMax = math.max,
-            mathMin = math.min,
-            findLabels = function (json,axisType,numDivLines){
-                var isMS = (json && json.categories) ? 1 : 0 ,
-                    labels = [],
-                    i = 0,
-                    data,
-                    labelArr,
-                    ln,
-                    axisBool = (axisType === 'x'),
-                    labelsX = function (labelArr){
-                        for(ln = labelArr.length; i < ln; i++){
-                            labels.push(labelArr[i].label);
-                        }
-                    },
-                    labelsY = function (data,bool){
-                        var min,
-                            max,
-                            storeMin = -Infinity,
-                            storeMax =  -Infinity,
-                            ln,
-                            len,
-                            element,
-                            elementFirst,
-                            elementLast,
-                            cnt,
-                            labelArr,
-                            divGap,
-                            limits = {},
-                            getValue = function (lArr){
-                                len = lArr.length;
-                                for(cnt = 0; cnt < len; cnt++){
-                                    element = lArr[cnt].value;
-                                    elementFirst = mathMin(elementFirst, element);
-                                    elementLast = mathMax(elementLast, element);
-                                    storeMin == -Infinity ? (storeMin = elementFirst) : storeMin;
-                                }
-                            },
-                            msGetValue = function (grp){
-                                for(ln = grp.length; i < ln; i++){
-                                    labelArr = grp[i].data;                                    
-                                    elementFirst = elementLast = labelArr[0].value;
-                                    getValue(labelArr);
-                                    storeMax = mathMax(storeMax, elementLast);
-                                    storeMin = mathMin(storeMin, elementFirst);
-                                }
-                            };
-                        bool ?  msGetValue(data) : getValue(data);
-                        limits = getAxisLimits(storeMax,storeMin,null,null,true,true,numDivLines,true);
-                        divGap = limits.divGap;
-                        element = limits.Max;
-                        while(element >= 0){
-                            labels.push(element);
-                            element -= divGap;
-                        }
-                        labels.sort(function(a,b){
-                            return a-b;
-                        });
-                    };
-
-                if(isMS && axisBool){
-                    data = json.categories[0];
-                    labelArr = data.category;
-                    labelsX(labelArr);
-                }else if(!isMS && axisBool){
-                    labelArr = json.data;
-                    labelsX(labelArr);
-                }else if(isMS && !axisBool){
-                    data = json.dataset;
-                    labelsY(data,isMS);
-                }else if(!isMS && !axisBool){
-                    data = json.data;
-                    labelsY(data,isMS);
-                }
-
-                return labels;
-            },
-            setAxisRange = function (labels){
-                var max = labels.length - 1,
-                    min = 0;
-                
-                return {
-                    max : max,
-                    min : min
-                };
-            };
+            pluck = lib.pluck,
+            getAxisLimits = lib.getAxisLimits;
 
         chartAPI ('axis', {
             standaloneInit : true,
@@ -100,118 +14,144 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
         }, chartAPI.drawingpad);
 
         FusionCharts.register('component', ['extension', 'drawaxis', {
-            type : 'mscartesian',
+            type : 'drawingpad',
 
             inhereitBaseExtension : true,
 
             init : function (chart) {
-               var extension = this;
-               extension.chart = chart;
-            },
-
-            spaceManager : function(){
-                
-            },
-
-            draw : function(){       
                 var extension = this,
-                    config,
-                    jsonData,
-                    chartHeight,
-                    chartwidth,
-                    marginLeft,
-                    marginRight,
-                    marginTop,
-                    marginBottom,
-                    numDivLines,
-                    left,
-                    right,
-                    top,
-                    bottom,
-                    axisConfig = {},
-                    chartInstance,
-                    num = Number;
+                    components = chart.components,
+                    axisConfig = extension.axisConfig || (extension.axisConfig = {}),
+                    chartInstance = chart.chartInstance;
 
-                chart = extension.chart;
-                chartInstance = chart.chartInstance;
-                config = chart && chart.config;
-                jsonData = chart && chart.jsonData;
-                chartHeight = config && config.height || 0;
-                chartwidth = config && config.width || 0;
-                marginLeft = num(config.canvasleftmargin) || 0;
-                marginRight = num(config.canvasrightmargin) || 0;
-                marginTop = num(config.canvastopmargin) || 0;
-                marginBottom = num(config.canvasbottommargin) || 0;
-                numDivLines = num(config.numdivlines) || 4;
+                components.axis || (components.axis = new (FusionCharts.getComponent('main', 'axis'))());
+                extension.chart = chart;
 
-                left = pluckNumber(config.canvasleftpadding , config.canvaspadding * 0.5, 0);
-                right = pluckNumber(config.canvasrightpadding , config.canvaspadding * 0.5, 0);
-                top = pluckNumber(config.canvastoppadding , config.canvaspadding * 0.5, 0);
-                bottom = pluckNumber(config.canvasbottompadding , config.canvaspadding * 0.5, 0);
+                chartInstance.setAxis = function (dataObj) {
+                    var i,
+                        j,
+                        k,
+                        len = dataObj.length,
+                        datasetLen,
+                        dataset,
+                        dataLen,
+                        mathMin = Math.min,
+                        mathMax = Math.max,
+                        min = Infinity,
+                        max = -Infinity,
+                        datum,
+                        data;
 
-                axisConfig.top = marginTop + top;
-                axisConfig.left = marginLeft + left;
-                axisConfig.len = chartwidth - (marginLeft + marginRight + left + right);
-                axisConfig.height = chartHeight - (marginTop + marginBottom + top + bottom);
-                axisConfig.axistype = chartInstance && chartInstance.args.axisType || 0;
-                axisConfig.divline = numDivLines;
+                    for (i = 0; i < len; i++) {
+                        datum = dataObj[i];
+                        if (dataset = datum.dataset) {
+                            datasetLen = dataset.length;
+                            for (j = 0; j < datasetLen; j++) {
+                                data = dataset[j].data;
+                                dataLen = data && data.length;
+                                for (k = 0; k < dataLen; k++) {
+                                    min = mathMin(min, data[k].value);
+                                    max = mathMax(max, data[k].value);
+                                }
+                            }
+                        }
+                        else {
+                            data = datum.data;
+                            dataLen = data.length;
+                            for (k = 0; k < dataLen; k++) {
+                                min = mathMin(min, data[k].value);
+                                max = mathMax(max, data[k].value);
+                            }
+                        }
+                    }
+                    axisConfig.min = min;
+                    axisConfig.max = max;
 
-                if(axisConfig.axistype){
-                    axisConfig.labels = findLabels(jsonData,axisConfig.axistype,numDivLines);
-                    extension._drawaxis(axisConfig);
-                }
+                    return extension.draw();
+                };
             },
 
-            _drawaxis : function (conf) { 
+            configure : function () {
+                var extension = this,
+                    axisConfig = extension.axisConfig,
+                    chart = extension.chart,
+                    config = chart.config,
+                    jsonData = chart.jsonData;
+
+                chart._manageSpace();
+                axisConfig.top = config.marginTop + config.borderWidth;
+                axisConfig.left = config.width - config.marginRight;
+                axisConfig.height = config.height - config.marginTop - config.marginBottom - 2 * config.borderWidth;
+                axisConfig.divline = pluckNumber(jsonData.numdivlines, 4);
+                axisConfig.axistype = pluck(jsonData.axistype, 'y');
+            },
+
+            draw : function(){
                 var extension = this,
                     chart = extension.chart,
-                    chartInstance = chart.chartInstance,
-                    paper = chartInstance && chartInstance.apiInstance.components.paper,
-                    axis = new (FusionCharts.getComponent('main', 'axis'))(),
-                    axisConfig = conf,
-                    labels = axisConfig.labels,
-                    top = axisConfig.top,
-                    left = axisConfig.left,
-                    axisLen = axisConfig.len,
-                    axistype = axisConfig.axistype,
-                    range = setAxisRange(labels);
-                            
-                    axis.getScaleObj().setConfig('graphics', {
-                       paper: paper
-                    });
-                    axis.setRange(range.max,range.min);
-                    axis.setAxisPosition(left,top);
-                    
-                    if(axisConfig.axistype == 'x'){
-                        axis.setAxisLength(axisLen);
-                        
-                    }else{
-                        axis.setAxisLength(axisConfig.height);
-                        axis.getScaleObj().setConfig("vertical", true);
+                    components = chart.components,
+                    paper = components.paper,
+                    axis = components.axis,
+                    axisConfig = extension.axisConfig,
+                    incrementor,
+                    maxLimit,
+                    limits,
+                    divGap,
+                    labels = [],
+                    top,
+                    left,
+                    min,
+                    max,
+                    minLimit;
+
+                max = axisConfig.max || 1;
+                min = axisConfig.min || 0;
+                left = axisConfig.left;
+                top = axisConfig.top;
+
+                axis.getScaleObj().setConfig('graphics', {
+                    paper: paper
+                });
+                axis.setRange(max,min);
+                axis.setAxisPosition(left,top);
+
+                if (axisConfig.axistype == 'x') {
+                    axis.setAxisLength(axisConfig.axisLen);
+
+                }
+                else {
+                    axis.setAxisLength(axisConfig.height);
+                    axis.getScaleObj().setConfig('vertical', true);
+                }
+
+                limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
+                divGap = limits.divGap;
+                maxLimit = limits.Max;
+                minLimit = incrementor = limits.Min;
+
+                while (incrementor <= maxLimit) {
+                    labels.push(incrementor);
+                    incrementor += divGap;
+                }
+
+                axis.getScaleObj().getIntervalObj().manageIntervals = function () {
+                    var intervals = this.getConfig('intervals'),
+                        scale = this.getConfig('scale'),
+                        intervalPoints = intervals.major.intervalPoints = [],
+                        i,
+                        len;
+
+                    scale.setRange(maxLimit, minLimit);
+
+                    for (i = 0, len = labels.length; i < len; i += 1) {
+                        intervalPoints.push(labels[i]);
                     }
-                    axis.getScaleObj().getIntervalObj().manageIntervals = function () {
-                        var intervals = this.getConfig('intervals'),
-                            scale = this.getConfig('scale'),
-                            majorIntervalObj = intervals.major,
-                            intervalMin,
-                            intervalMax,
-                            intervalStep,
-                            range,
-                            len,
-                            i;
 
-                        majorIntervalObj.intervalPoints.length = 0;
-                        majorIntervalObj.formatter = function(val) {
-                            return labels[val];
-                        }
+                    return this;
+                };
+                axis.draw();
 
-                        for (i = 0, len = labels.length; i < len; i += 1) {
-                            majorIntervalObj.intervalPoints.push(i);
-                        }
-
-                        return this;
-                    };
-                    axis.draw();
+                return [minLimit, maxLimit];
             }
         }]);
     }
