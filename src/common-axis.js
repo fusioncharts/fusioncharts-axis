@@ -25,45 +25,16 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 components.axis || (components.axis = new (FusionCharts.getComponent('main', 'axis'))());
                 extension.chart = chart;
 
-                chartInstance.setAxis = function (dataObj) {
-                    var i,
-                        j,
-                        k,
-                        len = dataObj.length,
-                        datasetLen,
-                        dataset,
-                        dataLen,
-                        mathMin = Math.min,
-                        mathMax = Math.max,
-                        min = Infinity,
-                        max = -Infinity,
-                        datum,
-                        data;
-
-                    for (i = 0; i < len; i++) {
-                        datum = dataObj[i];
-                        if (dataset = datum.dataset) {
-                            datasetLen = dataset.length;
-                            for (j = 0; j < datasetLen; j++) {
-                                data = dataset[j].data;
-                                dataLen = data && data.length;
-                                for (k = 0; k < dataLen; k++) {
-                                    min = mathMin(min, data[k].value);
-                                    max = mathMax(max, data[k].value);
-                                }
-                            }
-                        }
-                        else {
-                            data = datum.data;
-                            dataLen = data.length;
-                            for (k = 0; k < dataLen; k++) {
-                                min = mathMin(min, data[k].value);
-                                max = mathMax(max, data[k].value);
-                            }
-                        }
+                chartInstance.setAxis = function (data) {
+                    if (axisConfig.axisType === 'y') {
+                        axisConfig.min = data[0];
+                        axisConfig.max = data[1];
                     }
-                    axisConfig.min = min;
-                    axisConfig.max = max;
+                    else {
+                        axisConfig.min = 0;
+                        axisConfig.max = data.length;
+                    }
+                    
 
                     return extension.draw();
                 };
