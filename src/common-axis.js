@@ -32,7 +32,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     }
                     else {
                         axisConfig.min = 0;
-                        axisConfig.max = data.length;
+                        axisConfig.max = data.length - 1;
+                        axisConfig.category = data;
                     }
                     
 
@@ -57,10 +58,11 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
 
                 axisConfig.top = isYaxis ? config.marginTop + config.canvasborderthickness + config.borderthickness :
-                    pluckNumber(jsonData.charttopmargin, 0);
+                    (isAxisOpp ? config.height - pluckNumber(jsonData.chartbottommargin, 0) :
+                        pluckNumber(jsonData.charttopmargin, 0));
                 
-                axisConfig.left = isYaxis ? 
-                (isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) : config.width - pluckNumber(jsonData.chartrightmargin, 0)) :
+                axisConfig.left = isYaxis ? (isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) :
+                    config.width - pluckNumber(jsonData.chartrightmargin, 0)) :
                         (config.marginLeft + config.canvasborderthickness + config.borderthickness);
 
                 axisConfig.height = config.height - config.marginTop - config.marginBottom -
@@ -122,7 +124,6 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 else {
                     axis.setAxisLength(axisConfig.height);
                     axis.getScaleObj().setConfig('vertical', true);
-                    axisConfig.isAxisOpp && axis.getScaleObj().setConfig('opposite', true);
 
                     limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
                     divGap = limits.divGap;
@@ -139,6 +140,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     };
                 }
 
+                axisConfig.isAxisOpp && axis.getScaleObj().setConfig('opposite', true);
                 axisIntervals.major.drawTicks= true;
 
 
