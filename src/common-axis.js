@@ -16,8 +16,6 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
         FusionCharts.register('component', ['extension', 'drawaxis', {
             type : 'drawingpad',
 
-            inhereitBaseExtension : true,
-
             init : function (chart) {
                 var extension = this,
                     components = chart.components,
@@ -77,16 +75,26 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     chart = extension.chart,
                     config = chart.config,
                     jsonData = chart.jsonData.chart,
-                    axistype;
+                    axisType,
+                    isYaxis;
 
                 chart._manageSpace();
-                axistype = axisConfig.axistype = pluck(jsonData.axistype, 'y');
-                axisConfig.top = config.marginTop + config.canvasborderthickness + config.borderthickness;
-                axisConfig.left = axistype === 'y' ? config.width - pluckNumber(jsonData.chartrightmargin, 0) :
-                    (config.width - config.marginRight);
+                axisType = axisConfig.axisType = pluck(chart.chartInstance.args.axisType, 'y');
+                isYaxis = axisType === 'y';
+
+                axisConfig.top = isYaxis ? config.marginTop + config.canvasborderthickness + config.borderthickness :
+                    pluckNumber(jsonData.charttopmargin, 0);
+                
+                axisConfig.left = isYaxis ? config.width - pluckNumber(jsonData.chartrightmargin, 0) :
+                    (config.marginLeft + config.canvasborderthickness + config.borderthickness);
+
                 axisConfig.height = config.height - config.marginTop - config.marginBottom -
                     2 * config.canvasborderthickness - 2 * config.borderthickness;
+
                 axisConfig.divline = pluckNumber(jsonData.numdivlines, 4);
+
+                axisConfig.axisLen = config.width - config.marginRight - config.marginLeft -
+                    2 * config.canvasborderthickness - 2 * config.borderthickness;
             },
 
             draw : function(){
@@ -101,6 +109,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     limits,
                     divGap,
                     labels = [],
+                    categoryValues = [],
                     top,
                     left,
                     min,
@@ -120,30 +129,41 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axis.setRange(max,min);
                 axis.setAxisPosition(left,top);
 
-                if (axisConfig.axistype == 'x') {
+                if (axisConfig.axisType == 'x') {
+
+                    minLimit = min;
+                    maxLimit = max;
                     axis.setAxisLength(axisConfig.axisLen);
 
+                    for (i = 0; i <= max; i++) {
+                        labels.push(i);
+                    }
+                    categoryValues = axisConfig.category || ['start', 'end'];
+
+                    axisIntervals.major.formatter = function (value) {
+                        return categoryValues[value];
+                    };
                 }
                 else {
                     axis.setAxisLength(axisConfig.height);
                     axis.getScaleObj().setConfig('vertical', true);
-                }
+                    limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
+                    divGap = limits.divGap;
+                    maxLimit = limits.Max;
+                    minLimit = incrementor = limits.Min;
 
-                limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
-                divGap = limits.divGap;
-                maxLimit = limits.Max;
-                minLimit = incrementor = limits.Min;
+                    while (incrementor <= maxLimit) {
+                        labels.push(incrementor);
+                        incrementor += divGap;
+                    }
 
-                while (incrementor <= maxLimit) {
-                    labels.push(incrementor);
-                    incrementor += divGap;
+                    axisIntervals.major.formatter = function (value) {
+                        return numberFormatter.yAxis(value);
+                    };
                 }
 
                 axisIntervals.major.drawTicks= true;
 
-                axisIntervals.major.formatter = function (value) {
-                    return numberFormatter.yAxis(value);
-                };
 
                 axis.getScaleObj().getIntervalObj().manageIntervals = function () {
                     var intervals = this.getConfig('intervals'),
