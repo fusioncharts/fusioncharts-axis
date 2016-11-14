@@ -47,17 +47,21 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     config = chart.config,
                     jsonData = chart.jsonData.chart,
                     axisType,
+                    isAxisOpp,
                     isYaxis;
 
                 chart._manageSpace();
                 axisType = axisConfig.axisType = pluck(chart.chartInstance.args.axisType, 'y');
                 isYaxis = axisType === 'y';
 
+                isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
+
                 axisConfig.top = isYaxis ? config.marginTop + config.canvasborderthickness + config.borderthickness :
                     pluckNumber(jsonData.charttopmargin, 0);
                 
-                axisConfig.left = isYaxis ? config.width - pluckNumber(jsonData.chartrightmargin, 0) :
-                    (config.marginLeft + config.canvasborderthickness + config.borderthickness);
+                axisConfig.left = isYaxis ? 
+                (isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) : config.width - pluckNumber(jsonData.chartrightmargin, 0)) :
+                        (config.marginLeft + config.canvasborderthickness + config.borderthickness);
 
                 axisConfig.height = config.height - config.marginTop - config.marginBottom -
                     2 * config.canvasborderthickness - 2 * config.borderthickness;
@@ -118,6 +122,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 else {
                     axis.setAxisLength(axisConfig.height);
                     axis.getScaleObj().setConfig('vertical', true);
+                    axisConfig.isAxisOpp && axis.getScaleObj().setConfig('opposite', true);
+
                     limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
                     divGap = limits.divGap;
                     maxLimit = limits.Max;
