@@ -76,14 +76,17 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     axisConfig = extension.axisConfig,
                     chart = extension.chart,
                     config = chart.config,
-                    jsonData = chart.jsonData;
+                    jsonData = chart.jsonData.chart,
+                    axistype;
 
                 chart._manageSpace();
-                axisConfig.top = config.marginTop + config.borderWidth;
-                axisConfig.left = config.width - config.marginRight;
-                axisConfig.height = config.height - config.marginTop - config.marginBottom - 2 * config.borderWidth;
+                axistype = axisConfig.axistype = pluck(jsonData.axistype, 'y');
+                axisConfig.top = config.marginTop + config.canvasborderthickness + config.borderthickness;
+                axisConfig.left = axistype === 'y' ? config.width - pluckNumber(jsonData.chartrightmargin, 0) :
+                    (config.width - config.marginRight);
+                axisConfig.height = config.height - config.marginTop - config.marginBottom -
+                    2 * config.canvasborderthickness - 2 * config.borderthickness;
                 axisConfig.divline = pluckNumber(jsonData.numdivlines, 4);
-                axisConfig.axistype = pluck(jsonData.axistype, 'y');
             },
 
             draw : function(){
@@ -102,6 +105,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     left,
                     min,
                     max,
+                    numberFormatter = components.numberFormatter,
+                    axisIntervals = axis.getScaleObj().getIntervalObj().getConfig('intervals'),
                     minLimit;
 
                 max = axisConfig.max || 1;
@@ -133,6 +138,12 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     labels.push(incrementor);
                     incrementor += divGap;
                 }
+
+                axisIntervals.major.drawTicks= true;
+
+                axisIntervals.major.formatter = function (value) {
+                    return numberFormatter.yAxis(value);
+                };
 
                 axis.getScaleObj().getIntervalObj().manageIntervals = function () {
                     var intervals = this.getConfig('intervals'),
