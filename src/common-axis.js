@@ -49,29 +49,34 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     jsonData = chart.jsonData.chart,
                     axisType,
                     isAxisOpp,
+                    canvasBorderThickness,
+                    borderThickness,
                     isYaxis;
 
                 chart._manageSpace();
+                canvasBorderThickness = pluckNumber(config.canvasborderthickness, 0);
+                borderThickness = pluckNumber(config.borderthickness, 0);
+
                 axisType = axisConfig.axisType = pluck(chart.chartInstance.args.axisType, 'y');
                 isYaxis = axisType === 'y';
 
                 isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
 
-                axisConfig.top = isYaxis ? config.marginTop + config.canvasborderthickness + config.borderthickness :
+                axisConfig.top = isYaxis ? config.marginTop + canvasBorderThickness + borderThickness :
                     (isAxisOpp ? config.height - pluckNumber(jsonData.chartbottommargin, 0) :
                         pluckNumber(jsonData.charttopmargin, 0));
                 
                 axisConfig.left = isYaxis ? (isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) :
                     config.width - pluckNumber(jsonData.chartrightmargin, 0)) :
-                        (config.marginLeft + config.canvasborderthickness + config.borderthickness);
+                        (config.marginLeft + canvasBorderThickness + borderThickness);
 
                 axisConfig.height = config.height - config.marginTop - config.marginBottom -
-                    2 * config.canvasborderthickness - 2 * config.borderthickness;
+                    2 * canvasBorderThickness - 2 * borderThickness;
 
                 axisConfig.divline = pluckNumber(jsonData.numdivlines, 4);
 
                 axisConfig.axisLen = config.width - config.marginRight - config.marginLeft -
-                    2 * config.canvasborderthickness - 2 * config.borderthickness;
+                    2 * canvasBorderThickness - 2 * borderThickness;
             },
 
             draw : function(){
