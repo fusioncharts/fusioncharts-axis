@@ -39,6 +39,10 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                     return extension.draw();
                 };
+
+                chartInstance.getLimits = function () {
+                    return [axisConfig.minLimit, axisConfig.maxLimit];
+                }
             },
 
             configure : function () {
@@ -51,14 +55,18 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     isAxisOpp,
                     canvasBorderThickness,
                     borderThickness,
+                    args = chart.chartInstance.args,
                     isYaxis;
 
                 chart._manageSpace();
                 canvasBorderThickness = pluckNumber(config.canvasborderthickness, 0);
                 borderThickness = pluckNumber(config.borderthickness, 0);
 
-                axisType = axisConfig.axisType = pluck(chart.chartInstance.args.axisType, 'y');
+                axisType = axisConfig.axisType = pluck(args.axisType, 'y');
                 isYaxis = axisType === 'y';
+
+                axisConfig.min = args.dataMin;
+                axisConfig.max = args.dataMax;
 
                 isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
 
@@ -147,7 +155,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                 axisConfig.isAxisOpp && axis.getScaleObj().setConfig('opposite', true);
                 axisIntervals.major.drawTicks= true;
-
+                axisConfig.maxLimit = maxLimit;
+                axisConfig.minLimit = minLimit;
 
                 axis.getScaleObj().getIntervalObj().manageIntervals = function () {
                     var intervals = this.getConfig('intervals'),
