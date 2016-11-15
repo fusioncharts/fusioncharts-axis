@@ -37,7 +37,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     }
                     
 
-                    return draw &&  extension.draw();
+                    return draw !== false &&  extension.draw();
                 };
 
                 chartInstance.getLimits = function () {
@@ -67,7 +67,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axisType = axisConfig.axisType = pluck(args.axisType, 'y');
                 isYaxis = axisType === 'y';
 
-                extension.setAxis(isYaxis ? [jsonData.dataMin, jsonData.dataMax] : chart.jsonData.categories, false);
+                extension.setAxis(isYaxis ? [jsonData.datamin, jsonData.datamax] : chart.jsonData.categories, false);
 
                 isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
 
