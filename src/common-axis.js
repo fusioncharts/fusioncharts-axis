@@ -5,12 +5,14 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
             lib = global.hcLib,
             chartAPI = lib.chartAPI,
             pluckNumber = lib.pluckNumber,
-            pluck = lib.pluck,
             getAxisLimits = lib.getAxisLimits;
 
         chartAPI ('axis', {
             standaloneInit : true,
-            friendlyName : 'axis'
+            friendlyName : 'axis',
+            _checkInvalidData : function () {
+
+            }
         }, chartAPI.drawingpad);
 
         FusionCharts.register('component', ['extension', 'drawaxis', {
@@ -35,14 +37,14 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                         axisConfig.max = data.length - 1;
                         axisConfig.category = data;
                     }
-                    
+
 
                     return draw !== false &&  extension.draw();
                 };
 
                 chartInstance.getLimits = function () {
                     return [axisConfig.minLimit, axisConfig.maxLimit];
-                }
+                };
             },
 
             configure : function () {
@@ -57,15 +59,19 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     borderThickness,
                     args = chart.chartInstance.args,
                     isYaxis,
-                    canvasPaddingLeft = pluckNumber(jsonData.canvaspaddingleft, jsonData.canvaspadding),
-                    canvasPaddingRight = pluckNumber(jsonData.canvaspaddingright, jsonData.canvaspadding);
+                    canvasPaddingLeft = pluckNumber(jsonData.canvasleftpadding, jsonData.canvaspadding, 0),
+                    canvasPaddingRight = pluckNumber(jsonData.canvasrightpadding, jsonData.canvaspadding, 0);
 
                 chart._manageSpace();
                 canvasBorderThickness = pluckNumber(config.canvasborderthickness, 0);
                 borderThickness = pluckNumber(config.borderthickness, 0);
 
-                axisType = axisConfig.axisType = pluck(args.axisType, 'y');
-                isYaxis = axisType === 'y';
+                axisType = axisConfig.axisType = args.axisType;
+
+                if (!axisType) {
+                    return;
+                }
+                isYaxis = axisConfig.isYaxis = axisType === 'y';
 
                 extension.setAxis(isYaxis ? [jsonData.datamin, jsonData.datamax] : chart.jsonData.categories, false);
 
@@ -74,7 +80,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axisConfig.top = isYaxis ? config.marginTop + canvasBorderThickness + borderThickness :
                     (isAxisOpp ? config.height - pluckNumber(jsonData.chartbottommargin, 0) :
                         pluckNumber(jsonData.charttopmargin, 0));
-                
+
                 axisConfig.left = isYaxis ? (isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) :
                     config.width - pluckNumber(jsonData.chartrightmargin, 0)) :
                         (config.marginLeft + canvasBorderThickness + borderThickness + canvasPaddingLeft);
@@ -107,7 +113,12 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     max,
                     numberFormatter = components.numberFormatter,
                     axisIntervals = axis.getScaleObj().getIntervalObj().getConfig('intervals'),
-                    minLimit;
+                    minLimit,
+                    i;
+
+                if (!axisConfig.axisType) {
+                    return;
+                }
 
                 max = axisConfig.max || 1;
                 min = axisConfig.min || 0;
@@ -120,22 +131,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axis.setRange(max,min);
                 axis.setAxisPosition(left,top);
 
-                if (axisConfig.axisType == 'x') {
+                if (axisConfig.isYaxis) {
 
-                    minLimit = min;
-                    maxLimit = max;
-                    axis.setAxisLength(axisConfig.axisLen);
-
-                    for (i = 0; i <= max; i++) {
-                        labels.push(i);
-                    }
-                    categoryValues = axisConfig.category || ['start', 'end'];
-
-                    axisIntervals.major.formatter = function (value) {
-                        return categoryValues[value];
-                    };
-                }
-                else {
                     axis.setAxisLength(axisConfig.height);
                     axis.getScaleObj().setConfig('vertical', true);
 
@@ -151,6 +148,20 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                     axisIntervals.major.formatter = function (value) {
                         return numberFormatter.yAxis(value);
+                    };
+                }
+                else {
+                    minLimit = min;
+                    maxLimit = max;
+                    axis.setAxisLength(axisConfig.axisLen);
+
+                    for (i = 0; i <= max; i++) {
+                        labels.push(i);
+                    }
+                    categoryValues = axisConfig.category || ['start', 'end'];
+
+                    axisIntervals.major.formatter = function (value) {
+                        return categoryValues[value];
                     };
                 }
 
