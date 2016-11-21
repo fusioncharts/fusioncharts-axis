@@ -57,7 +57,6 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     isAxisOpp,
                     canvasBorderThickness,
                     borderThickness,
-                    args = chart.chartInstance.args,
                     isYaxis,
                     canvasPaddingLeft = pluckNumber(jsonData.canvasleftpadding, jsonData.canvaspadding, 0),
                     canvasPaddingRight = pluckNumber(jsonData.canvasrightpadding, jsonData.canvaspadding, 0);
@@ -66,7 +65,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 canvasBorderThickness = pluckNumber(config.canvasborderthickness, 0);
                 borderThickness = pluckNumber(config.borderthickness, 0);
 
-                axisType = axisConfig.axisType = args.axisType;
+                axisType = axisConfig.axisType = jsonData.axisType;
 
                 if (!axisType) {
                     return;
