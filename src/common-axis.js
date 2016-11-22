@@ -65,7 +65,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 canvasBorderThickness = pluckNumber(config.canvasborderthickness, 0);
                 borderThickness = pluckNumber(config.borderthickness, 0);
 
-                axisType = axisConfig.axisType = jsonData.axisType;
+                axisType = axisConfig.axisType = jsonData.axistype;
 
                 if (!axisType) {
                     return;
