@@ -72,20 +72,18 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 isYaxis = axisConfig.isYaxis = axisType === 'y';
                 isHorizontal = axisConfig.isHorizontal = typeof jsonData.ishorizontal === 'undefined' ?
                  !isYaxis : jsonData.ishorizontal;
-
                 extension.setAxis(isYaxis ? [jsonData.datamin, jsonData.datamax] : chart.jsonData.categories, false);
 
                 isAxisOpp = axisConfig.isAxisOpp = pluckNumber(jsonData.isaxisopposite, 0);
 
-                if (!isYaxis && !isHorizontal) {
-                    axisConfig.top = config.marginTop + canvasBorderThickness + borderThickness; console.log(jsonData.chartrightmargin);
+                if (!isHorizontal) {
+                    axisConfig.top = config.marginTop + canvasBorderThickness + borderThickness;
                     axisConfig.left = isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) : config.width - pluckNumber(jsonData.chartrightmargin, 0);
                 } else {
                     axisConfig.top = (isAxisOpp ? config.height - pluckNumber(jsonData.chartbottommargin, 0) :
                         pluckNumber(jsonData.charttopmargin, 0));
                     axisConfig.left = config.marginLeft + canvasBorderThickness + borderThickness + canvasPaddingLeft;
                 }
-
                 axisConfig.height = config.height - config.marginTop - config.marginBottom -
                     2 * canvasBorderThickness - 2 * borderThickness;
 
@@ -116,7 +114,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     scaleObj = axis.getScaleObj(),
                     axisIntervals = scaleObj.getIntervalObj().getConfig('intervals'),
                     minLimit,
-                    isHorizontal = axisConfig.isHorizontal,
+                    isHorizontal = !!axisConfig.isHorizontal,
                     i;
 
                 if (!axisConfig.axisType) {
@@ -134,8 +132,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axis.setRange(max, min);
                 axis.setAxisPosition(left, top);
                 if (axisConfig.isYaxis) {
-                    axis.setAxisLength(isHorizontal ? axisConfig.height : axisConfig.axisLen);
-                    scaleObj.setConfig('vertical', axisConfig.isYaxis === isHorizontal);
+                    axis.setAxisLength(!isHorizontal ? axisConfig.height : axisConfig.axisLen);
+                    scaleObj.setConfig('vertical', !isHorizontal);
 
                     limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
                     divGap = limits.divGap;
@@ -155,7 +153,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     minLimit = min;
                     maxLimit = max;
                     axis.setAxisLength(isHorizontal ? axisConfig.axisLen : axisConfig.height);
-                    scaleObj.setConfig('vertical', axisConfig.isYaxis !== isHorizontal);
+                    scaleObj.setConfig('vertical', !isHorizontal);
 
                     for (i = 0; i <= max; i++) {
                         labels.push(i);
