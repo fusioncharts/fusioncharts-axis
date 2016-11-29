@@ -116,7 +116,9 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     minLimit,
                     isHorizontal = !!axisConfig.isHorizontal,
                     i,
-                    categoryLen = axisConfig.category.length;
+                    category = axisConfig && axisConfig.category,
+                    categoryLen = category && category.length,
+                    axisLen = isHorizontal ? axisConfig.axisLen : axisConfig.height;
 
                 if (!axisConfig.axisType) {
                     return;
@@ -125,11 +127,11 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 top = axisConfig.top;
 
                 if (categoryLen === 1 && isHorizontal) {
-                    left -= (isHorizontal ? axisConfig.axisLen : axisConfig.height) / 2;
+                    left -= axisLen / 2;
                     max = 0;
                     min = -1;
                 } else if (categoryLen === 1 && !isHorizontal) {
-                    top += (isHorizontal ? axisConfig.axisLen : axisConfig.height) / 2;
+                    top += axisLen / 2;
                     max = 0;
                     min = -1;
                 } else {
@@ -142,7 +144,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axis.setRange(max, min);
                 axis.setAxisPosition(left, top);
                 if (axisConfig.isYaxis) {
-                    axis.setAxisLength(!isHorizontal ? axisConfig.height : axisConfig.axisLen);
+                    axis.setAxisLength(axisLen);
                     scaleObj.setConfig('vertical', !isHorizontal);
 
                     limits = getAxisLimits(max, min, null, null, true, true, axisConfig.divline, true);
@@ -162,7 +164,7 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 else {
                     minLimit = min;
                     maxLimit = max;
-                    axis.setAxisLength(isHorizontal ? axisConfig.axisLen : axisConfig.height);
+                    axis.setAxisLength(axisLen);
                     scaleObj.setConfig('vertical', !isHorizontal);
 
                     for (i = 0; i <= max; i++) {
