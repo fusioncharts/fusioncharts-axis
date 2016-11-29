@@ -115,17 +115,27 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     axisIntervals = scaleObj.getIntervalObj().getConfig('intervals'),
                     minLimit,
                     isHorizontal = !!axisConfig.isHorizontal,
-                    i;
+                    i,
+                    categoryLen = axisConfig.category.length;
 
                 if (!axisConfig.axisType) {
                     return;
                 }
-
-                max = axisConfig.max || 1;
-                min = axisConfig.min || 0;
                 left = axisConfig.left;
                 top = axisConfig.top;
 
+                if (categoryLen === 1 && isHorizontal) {
+                    left -= (isHorizontal ? axisConfig.axisLen : axisConfig.height) / 2;
+                    max = 0;
+                    min = -1;
+                } else if (categoryLen === 1 && !isHorizontal) {
+                    top += (isHorizontal ? axisConfig.axisLen : axisConfig.height) / 2;
+                    max = 0;
+                    min = -1;
+                } else {
+                    max = axisConfig.max || 1;
+                    min = axisConfig.min || 0;
+                }
                 scaleObj.setConfig('graphics', {
                     paper: paper
                 });
