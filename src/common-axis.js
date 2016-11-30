@@ -126,17 +126,10 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 left = axisConfig.left;
                 top = axisConfig.top;
 
-                if (categoryLen === 1 && isHorizontal) {
-                    left -= axisLen / 2;
+                if (categoryLen === 1) {
                     max = 0;
                     min = -1;
-                } else if (categoryLen === 1 && !isHorizontal) {
-                    top += axisLen / 2;
-                    max = 0;
-                    min = -1;
-                } else {
-                    max = axisConfig.max || 1;
-                    min = axisConfig.min || 0;
+                    isHorizontal ? (left -= axisLen / 2) : (top += axisLen / 2);
                 }
                 scaleObj.setConfig('graphics', {
                     paper: paper
