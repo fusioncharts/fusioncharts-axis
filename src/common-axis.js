@@ -28,6 +28,9 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 extension.chart = chart;
 
                 chartInstance.setAxis = extension.setAxis = function (data, draw) {
+                    if (!(data instanceof Array)) {
+                        return;
+                    }
                     if (axisConfig.axisType === 'y') {
                         axisConfig.min = data[0];
                         axisConfig.max = data[1];
@@ -156,8 +159,14 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                     axis.setAxisLength(axisConfig.axisLen);
                     scaleObj.setConfig('vertical', false);
 
-                    for (i = 0; i <= max; i++) {
-                        labels.push(i);
+                    if (axisConfig.category && axisConfig.category.length === 1) {
+                        labels.push(0);
+                        minLimit = -1
+                    }
+                    else {
+                        for (i = 0; i <= max; i++) {
+                            labels.push(i);
+                        }
                     }
                     categoryValues = axisConfig.category || ['start', 'end'];
 
