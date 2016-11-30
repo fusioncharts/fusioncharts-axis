@@ -81,7 +81,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                 if (!isHorizontal) {
                     axisConfig.top = config.marginTop + canvasBorderThickness + borderThickness;
-                    axisConfig.left = isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) : config.width - pluckNumber(jsonData.chartrightmargin, 0);
+                    axisConfig.left = isAxisOpp ? pluckNumber(jsonData.chartrightmargin, 0) : config.width - 
+                        pluckNumber(jsonData.chartrightmargin, 0);
                 } else {
                     axisConfig.top = (isAxisOpp ? config.height - pluckNumber(jsonData.chartbottommargin, 0) :
                         pluckNumber(jsonData.charttopmargin, 0));
@@ -94,6 +95,9 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
 
                 axisConfig.axisLen = config.width - config.marginRight - config.marginLeft -
                     2 * canvasBorderThickness - 2 * borderThickness - canvasPaddingLeft - canvasPaddingRight;
+
+                axisConfig.valuePaddingLeft = pluckNumber(jsonData.valuepaddingleft, jsonData.valuepadding, 0);
+                axisConfig.valuePaddingRight = pluckNumber(jsonData.valuepaddingright, jsonData.valuepadding, 0);
             },
 
             draw: function () {
@@ -175,8 +179,8 @@ FusionCharts.register('module', ['private', 'modules.renderer.js-extension-axis'
                 axisConfig.isAxisOpp ? scaleObj.setConfig('opposite', true) :
                     scaleObj.setConfig('opposite', false);
                 axisIntervals.major.drawTicks = true;
-                axisConfig.maxLimit = maxLimit;
-                axisConfig.minLimit = minLimit;
+                maxLimit = axisConfig.maxLimit = maxLimit + axisConfig.valuePaddingRight;
+                minLimit = axisConfig.minLimit = minLimit - axisConfig.valuePaddingLeft;
 
                 scaleObj.getIntervalObj().manageIntervals = function () {
                     var intervals = this.getConfig('intervals'),
