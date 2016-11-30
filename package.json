@@ -1,0 +1,36 @@
+{
+  "name": "fusioncharts-axis",
+  "version": "0.0.1",
+  "description": "Extension for Fusioncharts Multi-Charting to create Caption",
+  "main": "index.js",
+  "scripts": {
+    "runtest": "ci/runtest/runtest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fusioncharts/fusioncharts-axis.git"
+  },
+  "keywords": [
+    "FusionCharts",
+    "selective-update",
+    "charts"
+  ],
+  "author": "FusionCharts Technologies",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fusioncharts/fusioncharts-axis/issues"
+  },
+  "homepage": "https://github.com/fusioncharts/fusioncharts-axis",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "fusioncharts": "^3.11.2",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "^2.6.0",
+    "gulp-shell": "^0.5.2",
+    "jsdom": "^9.8.3",
+    "mocha": "^3.1.2",
+    "mocha-phantomjs": "^4.1.0",
+    "phantomjs": "^2.1.7"
+  }
+}
